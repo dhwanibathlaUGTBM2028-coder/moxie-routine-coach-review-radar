@@ -1,28 +1,36 @@
 # Moxie Routine Coach + Review Radar
 
-Local-first proof-of-work product for Moxie Beauty: a customer-facing Routine Coach plus a brand-facing Review Radar that turns haircare reviews into product-page, education, support, and growth actions.
+Referral-ready proof-of-work product for Moxie Beauty: a customer-facing Routine Coach plus a brand-facing Review Radar that turns haircare reviews into product-page, education, support, and weekly growth actions.
 
-This is a brand-inspired demo, not an official Moxie asset. It uses placeholder logo text, configurable colors, and configurable product names so official logo, colors, fonts, and SKU mapping can be replaced later.
+This is a brand-inspired demo, not an official Moxie asset. It uses placeholder logo text `MOXIE BEAUTY`, configurable colors, and configurable product names so official logo, colors, fonts, and SKU mapping can be replaced later.
 
-## What This Project Is
+## Problem It Solves
 
-Moxie sells haircare and styling products for Indian hair, weather, humidity, and habits. The deeper monetizable problem is often not awareness alone. It is routine mismatch and usage confusion: customers may buy the wrong product, use the right product incorrectly, or apply too much/too little.
+For haircare brands, customer dissatisfaction does not always mean the product is bad. A customer may choose the wrong product for their hair type, use the right product in the wrong amount, apply it in the wrong order, or expect the same result across humidity, scalp type, and styling habits.
 
-This demo has two connected modules:
+That creates a monetizable operating problem:
 
-- **Routine Coach:** pre-purchase quiz that recommends a routine, product categories, usage amount, application order, common mistake to avoid, education card, suggested bundle, and post-purchase tip.
-- **Review Radar:** post-purchase dashboard that classifies reviews/comments into complaint categories, root cause, severity, confidence, funnel impact, and recommended brand actions.
+- Wrong-fit purchases before checkout.
+- Avoidable sticky, greasy, heavy, dry, weak-hold, or residue complaints.
+- Lower marketplace conversion when low ratings repeat the same objection.
+- More support load from routine and usage questions.
+- Missed content opportunities from repeated customer confusion.
 
-## What It Solves
+This tool helps Moxie detect those patterns and turn them into page fixes, usage education, support replies, and content actions.
 
-- Helps customers choose a better-fit routine before buying.
-- Helps the brand detect patterns in reviews after purchase.
-- Converts negative reviews and confusion into website updates, usage education, FAQs, support replies, and content ideas.
-- Gives growth, support, product, and marketing teams a weekly operating routine.
+## What The App Includes
+
+- **Why / Pitch View:** clear business framing and proof-of-work summary.
+- **Routine Coach:** short quiz that recommends a lean routine, amount, order, mistakes to avoid, and product-page education ideas.
+- **Review Radar:** sample data, CSV upload, pasted comments, and rule-based classification.
+- **Metrics Dashboard:** complaint categories, root causes, marketplace risk, urgent actions, source insights, product heatmap, and team owner breakdown.
+- **Weekly Report:** presentation-ready report with open summary/action sections and export options.
+- **Settings:** local brand config for logo path, colors, fonts, product names, and categories.
+- **Exports:** classified CSV, insights JSON, report copy, and browser print-to-PDF.
 
 ## How To Run Locally
 
-No paid APIs, no external LLMs, no database, and no install step are required.
+No install step, paid API, external LLM, database, or backend is required.
 
 ```bash
 node scripts/serve.mjs
@@ -34,25 +42,33 @@ Then open:
 http://127.0.0.1:4173
 ```
 
-## GitHub Pages Deployment
-
-This is a static app, so it can be hosted directly on GitHub Pages.
-
-1. Push this folder to a GitHub repository.
-2. In GitHub, go to **Settings > Pages**.
-3. Set **Source** to **Deploy from a branch**.
-4. Choose the default branch and `/root`.
-5. Save. GitHub will publish the app at the Pages URL shown there.
-
-The `.nojekyll` file is included so GitHub Pages serves the static files as-is.
-
-In this Codex workspace, the regular `node` command may be blocked. If needed, run with the bundled runtime:
+If the regular `node` command is blocked on this machine, use the bundled runtime:
 
 ```powershell
 & 'C:\Users\DHWANI\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\serve.mjs
 ```
 
-## How To Use Sample Data
+## How To Deploy
+
+This is a static app and can be deployed on GitHub Pages.
+
+1. Push the project to GitHub.
+2. Go to the repository on GitHub.
+3. Open **Settings > Pages**.
+4. Under **Build and deployment**, choose **Deploy from a branch**.
+5. Choose the `gh-pages` branch and `/root`.
+6. Save and wait a few minutes for GitHub Pages to publish.
+7. Open the Pages URL shown by GitHub.
+
+For this repository, the expected live URL format is:
+
+```text
+https://dhwanibathlaugtbm2028-coder.github.io/moxie-routine-coach-review-radar/
+```
+
+The `.nojekyll` file is included so GitHub Pages serves the static files as-is.
+
+## Demo Mode
 
 Demo mode is on by default and loads realistic sample reviews across:
 
@@ -66,9 +82,9 @@ Demo mode is on by default and loads realistic sample reviews across:
 - Heat Protectant
 - Styling Gel
 
-Use **Review Radar** or **Dashboard** to inspect the classified output.
+Use the top-right toggle to clear or reload sample data.
 
-## How To Upload CSV
+## Upload CSV
 
 Go to **Review Radar** and upload a `.csv` file with these fields:
 
@@ -76,76 +92,90 @@ Go to **Review Radar** and upload a `.csv` file with these fields:
 Date, Source, Product, Rating, Review_Text, Customer_Hair_Type, Purchase_Channel, Verified_Buyer, Location, Status
 ```
 
-Supported source examples: Website reviews, Amazon, Nykaa, Flipkart, Instagram comments, Support chat, WhatsApp, Reddit/Quora.
+Supported source examples:
 
-You can also paste one review or comment per line in the manual review box.
+- Website reviews
+- Amazon
+- Nykaa
+- Flipkart
+- Instagram comments
+- Support chat
+- WhatsApp
+- Reddit/Quora manually pasted
 
-## How To Customize For Moxie
+You can also paste one review, support message, or social comment per line.
 
-Open **Settings** in the app, or edit:
+## Export Report And Data
+
+From **Weekly Report**:
+
+- **Export PDF:** opens browser print. Choose "Save as PDF".
+- **Copy report:** copies the weekly report as Markdown.
+- **Reviews CSV:** exports classified reviews.
+- **Insights JSON:** exports report sections and analytics.
+
+From **Review Radar**, export classified reviews as CSV or JSON.
+
+## Local-First / No Paid API
+
+This demo uses:
+
+- Local JavaScript modules
+- Local sample data
+- Browser localStorage for config
+- Rule-based keyword and scoring logic
+- Client-side CSV parsing
+- Browser print for PDF
+- Client-side CSV/JSON downloads
+
+It does **not** use OpenAI API, Gemini API, Claude API, paid scraping tools, paid database tools, subscriptions, paid credits, or backend hosting.
+
+## Key Files
+
+- `index.html` - app entry
+- `src/main.js` - navigation, rendering, interactions, exports
+- `src/styles.css` - Moxie-inspired visual system and print styles
+- `src/config/brandConfig.js` - editable brand/product configuration
+- `src/data/sampleReviews.js` - built-in realistic sample review dataset
+- `src/lib/classifier.js` - runtime classifier
+- `src/lib/classifier.ts` - requested classifier mirror
+- `src/lib/recommendationEngine.js` - Routine Coach recommendation logic
+- `src/lib/report.js` - analytics and weekly report generation
+- `src/lib/csv.js` - CSV upload/export and pasted review parsing
+- `scripts/serve.mjs` - tiny local static server
+- `docs/demo-script.md` - short spoken demo script
+- `docs/pitch-summary.md` - presentation positioning
+
+## Customize Before Sending To Moxie
+
+Replace only with permission or official files:
+
+- Official logo asset and `logoPath`
+- Exact Moxie color tokens
+- Licensed brand fonts
+- Real product SKU names and bundle mapping
+- Product imagery, if Moxie provides usable assets
+- Any claims that require internal proof or approval
+
+You can edit defaults in:
 
 ```text
 src/config/brandConfig.js
 ```
 
-You can change:
+The in-app Settings page also stores local overrides in browser localStorage.
 
-- Logo path
-- Placeholder logo text
-- Primary, secondary, accent, soft, and ink colors
-- Display and body font families
-- Product names
-- Product categories
-- Source list
+## 60-Second Demo Script
 
-Before sending this externally, replace placeholder branding with official assets only if Moxie provides permission or files.
+"I built Moxie Routine Coach + Review Radar as a proof-of-work around one monetizable haircare problem: routine mismatch. In beauty, a bad review does not always mean the product is bad. Sometimes the customer chose the wrong routine, used too much product, or applied it in the wrong order. This tool helps customers find the right routine before buying, and helps the brand detect repeated usage confusion after purchase. It turns reviews and comments into product-page fixes, support replies, usage education, and weekly content actions. It is local-first, no API, and built to be easy for a brand team to pilot."
 
-## How To Export
+## Suggested Walkthrough
 
-From **Report**:
-
-- **Export PDF:** opens the browser print flow. Choose "Save as PDF".
-- **Copy report:** copies the weekly report as Markdown.
-- **Reviews CSV:** exports classified reviews.
-- **Insights JSON:** exports report sections plus analytics.
-
-From **Review Radar**, export classified reviews as CSV or JSON.
-
-## Free / No Paid API
-
-This demo uses:
-
-- Local JavaScript modules
-- Local JSON-style sample data
-- Browser localStorage for config
-- Rule-based classification
-- Client-side CSV parsing
-- Browser print for PDF
-- Client-side CSV/JSON download
-
-It does **not** use OpenAI API, Gemini API, Claude API, paid scraping tools, paid database tools, or paid hosting.
-
-## Stack Note
-
-The requested React/Tailwind/Recharts stack was not available in this shell because npm is unavailable and the system Node command is blocked. I chose the closest free local alternative: a zero-build modular browser app with custom CSS and custom chart components. This improves demo reliability because it runs locally without dependency installation.
-
-The project still keeps a clean `src` structure, including `src/lib/classifier.ts`, so it can be migrated to React/TypeScript later.
-
-## Key Files
-
-- `index.html` - app entry
-- `src/main.js` - app navigation, rendering, interactions, exports
-- `src/styles.css` - Moxie-inspired visual system and print styles
-- `src/config/brandConfig.js` - editable brand/product configuration
-- `src/data/sampleReviews.js` - built-in realistic sample review dataset
-- `src/lib/classifier.ts` - requested classifier source mirror
-- `src/lib/classifier.js` - runtime classifier
-- `src/lib/recommendationEngine.js` - Routine Coach recommendation logic
-- `src/lib/report.js` - analytics and weekly report generation
-- `src/lib/csv.js` - CSV upload/export and pasted review parsing
-- `scripts/serve.mjs` - tiny local static server
-- `docs/demo-script.md` - 60-second demo script
-- `docs/pitch-summary.md` - presentation positioning
+1. Start on **Why** and explain the routine mismatch problem.
+2. Open **Coach** and show the default wavy, fine, oily-scalp, humid-weather recommendation.
+3. Open **Radar** and show how a sticky wax-stick review becomes an action, root cause, confidence score, and team owner.
+4. Open **Metrics** and point to the weekly action, biggest avoidable risk, marketplace risk, and owner breakdown.
+5. Open **Weekly Report** and show the open executive summary, priority actions, product-page fixes, and education ideas.
 
 ## Limitations
 
@@ -154,31 +184,19 @@ The project still keeps a clean `src` structure, including `src/lib/classifier.t
 - Brand visuals are inspired, not official.
 - CSV upload expects clean headers.
 - PDF export uses browser print, not a custom PDF renderer.
-- No backend, user accounts, marketplace scraping, or long-term analytics database.
+- There is no backend, user accounts, scraping, or long-term analytics database.
 
-## Future Improvements
+## Future Improvements For A Real Pilot
 
-If Moxie wanted to pilot this seriously:
-
-- Map product placeholders to real SKUs and official routine bundles.
+- Map placeholders to real Moxie SKUs and official bundles.
 - Add Shopify/Amazon/Nykaa review import workflows.
-- Add a human review queue with owner/status changes.
-- Track weekly trends over time with saved snapshots.
-- Add official brand design tokens and product imagery.
-- Add optional local-only LLM support through Ollama for summarization, while keeping rule-based fallback.
-- Add A/B tracking for FAQ/product-page education changes.
+- Add a human review queue with editable owner/status fields.
+- Save weekly snapshots and trend movement over time.
+- Add official brand design tokens and approved product imagery.
+- Add optional local-only Ollama summarization while keeping rule-based fallback.
+- Track product-page/FAQ changes against future review objections.
 
-## Screenshots
-
-Run the app, then capture:
-
-1. Pitch View hero and weekly workflow.
-2. Routine Coach after changing hair type/density/climate.
-3. Review Radar classified queue.
-4. Dashboard with filters and heatmap.
-5. Report page before printing to PDF.
-
-## Packaging As One Shareable Deliverable
+## Packaging As A Shareable Deliverable
 
 Zip the full folder:
 
@@ -186,4 +204,4 @@ Zip the full folder:
 moxie-routine-coach-review-radar.zip
 ```
 
-Include the README and keep the `src`, `scripts`, and `docs` folders together. The recipient can run `node scripts/serve.mjs` and open the local URL.
+Keep `index.html`, `src`, `scripts`, `docs`, `.nojekyll`, and `README.md` together. The recipient can run the local server and open the browser URL.

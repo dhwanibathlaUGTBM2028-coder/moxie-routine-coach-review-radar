@@ -280,6 +280,15 @@ h4 {
   line-height: 1.5;
 }
 
+.hero-subline {
+  max-width: 920px;
+  margin: 14px 0 0;
+  color: var(--primary);
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
 .hero-actions,
 .button-row {
   display: flex;
@@ -482,6 +491,75 @@ h4 {
   padding: 16px;
 }
 
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.insight-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.insight-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.insight-card .focus-list {
+  margin-top: 2px;
+}
+
+.proof-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+  gap: 20px;
+  align-items: start;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, rgba(244, 232, 93, 0.3), rgba(255, 255, 255, 0.88)),
+    #fff;
+  padding: 22px;
+}
+
+.proof-summary p {
+  margin: 14px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.summary-grid div {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 14px;
+}
+
+.summary-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.summary-grid strong {
+  display: block;
+  margin-top: 7px;
+  color: var(--primary);
+  line-height: 1.35;
+}
+
 .flow-card::before {
   display: inline-grid;
   width: 34px;
@@ -493,6 +571,14 @@ h4 {
   color: var(--primary);
   font-weight: 900;
   content: attr(data-step);
+}
+
+.flow-card h3 {
+  font-family: var(--body-font);
+  font-size: 1rem;
+  font-weight: 850;
+  line-height: 1.35;
+  text-transform: none;
 }
 
 .product-chip-grid {
@@ -572,6 +658,26 @@ h4 {
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 16px;
+}
+
+.decision-grid {
+  align-items: stretch;
+}
+
+.decision-card {
+  min-height: 150px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 251, 226, 0.72)),
+    #fff;
+}
+
+.decision-card h3 {
+  margin-top: 12px;
+  font-family: var(--body-font);
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.42;
+  text-transform: none;
 }
 
 .dashboard-layout {
@@ -890,7 +996,17 @@ table {
 }
 
 .compact-table {
-  min-width: 720px;
+  min-width: 1180px;
+}
+
+.radar-table th:nth-child(3),
+.radar-table td:nth-child(3) {
+  min-width: 260px;
+}
+
+.radar-table th:nth-child(8),
+.radar-table td:nth-child(8) {
+  min-width: 340px;
 }
 
 th,
@@ -1051,6 +1167,19 @@ td {
   margin-bottom: 24px;
 }
 
+.report-title {
+  max-width: 980px;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1;
+}
+
+.report-lede {
+  max-width: 860px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .report-section {
   padding: 18px 0;
   border-bottom: 1px solid var(--line);
@@ -1096,6 +1225,14 @@ td {
   font-family: var(--body-font);
   line-height: 1.65;
   white-space: pre-wrap;
+}
+
+.report-section[open] {
+  background: linear-gradient(90deg, rgba(244, 232, 93, 0.09), transparent 56%);
+  margin-left: -12px;
+  margin-right: -12px;
+  padding-left: 12px;
+  padding-right: 12px;
 }
 
 .settings-grid {
@@ -1202,6 +1339,8 @@ td {
   .hero,
   .problem-strip,
   .flow-grid,
+  .why-grid,
+  .proof-summary,
   .page-intro,
   .dashboard-layout,
   .grid.two,
@@ -1214,6 +1353,10 @@ td {
   .form-grid,
   .filter-bar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1271,7 +1414,10 @@ td {
   }
 
   .form-grid,
-  .filter-bar {
+  .filter-bar,
+  .why-grid,
+  .proof-summary,
+  .summary-grid {
     grid-template-columns: 1fr;
   }
 

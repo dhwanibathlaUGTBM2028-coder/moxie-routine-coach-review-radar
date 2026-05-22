@@ -286,6 +286,26 @@ const ownerMap = {
   Other: "Needs review"
 };
 
+const teamOwnerByIssue = {
+  "Usage confusion": "Website team",
+  "Routine mismatch": "Website team",
+  "Sticky or greasy feel": "Website team",
+  "Product feels heavy": "Website team",
+  Dryness: "Product team",
+  "Weak hold": "Website team",
+  "Weighed-down curls": "Website team",
+  "Frizz not controlled": "Website team",
+  "White cast or residue": "Website team",
+  "Scalp concern": "Product team",
+  "Scent concern": "Product team",
+  "Price/quantity concern": "Marketplace team",
+  "Packaging issue": "Support team",
+  "Delivery issue": "Marketplace team",
+  "Positive repeat purchase": "Content team",
+  "Positive routine fit": "Content team",
+  Other: "Support team"
+};
+
 export function normalizeText(value = "") {
   return String(value)
     .normalize("NFKD")
@@ -327,14 +347,19 @@ function scoreTerms(text, weightedTerms) {
 function boostProductLogic(scores, review, text) {
   const product = normalizeText(productName(review));
 
-  if ((product.includes("wax") || product.includes("serum")) && /sticky|greasy|oily|waxy|buildup/.test(text)) {
+  if ((product.includes("wax") || product.includes("serum") || product.includes("gel") || product.includes("cream")) && /sticky|greasy|oily|waxy|buildup|build up|heavy/.test(text)) {
     scores["Sticky or greasy feel"] = (scores["Sticky or greasy feel"] || 0) + 5;
     scores["Usage confusion"] = (scores["Usage confusion"] || 0) + 2;
   }
 
-  if ((product.includes("curl") || product.includes("leave in") || product.includes("conditioner")) && /fine|2a|2b|flat|heavy|weighed/.test(text)) {
+  if ((product.includes("curl") || product.includes("leave in") || product.includes("conditioner") || product.includes("serum") || product.includes("gel")) && /fine|2a|2b|flat|heavy|weighed|limp/.test(text)) {
     scores["Routine mismatch"] = (scores["Routine mismatch"] || 0) + 3;
     scores["Product feels heavy"] = (scores["Product feels heavy"] || 0) + 3;
+  }
+
+  if (/fine hair|fine|low density|thin hair/.test(text) && /heavy|weighed|flat|limp|greasy|sticky/.test(text)) {
+    scores["Routine mismatch"] = (scores["Routine mismatch"] || 0) + 4;
+    scores["Product feels heavy"] = (scores["Product feels heavy"] || 0) + 4;
   }
 
   if ((product.includes("gel") || product.includes("styling")) && /humidity|sweat|hold|opened/.test(text)) {
@@ -357,11 +382,11 @@ function boostProductLogic(scores, review, text) {
     scores["Weak hold"] = (scores["Weak hold"] || 0) + 1;
   }
 
-  if (/again|repurchase|second|finally/.test(text)) {
+  if (/again|repurchase|second|finally|love|loved|works in humidity|works well|works nicely/.test(text)) {
     scores["Positive repeat purchase"] = (scores["Positive repeat purchase"] || 0) + 4;
   }
 
-  if (/can i|should i|how much|not sure|confused|instructions|diagram|routine order/.test(text)) {
+  if (/can i|should i|how much|not sure|confused|instructions|diagram|routine order|used too much|quantity|application|before or after|order/.test(text)) {
     scores["Usage confusion"] = (scores["Usage confusion"] || 0) + 4;
   }
 
@@ -439,9 +464,9 @@ export function detectRootCause(review, issueResult = classifyIssue(review)) {
   const product = normalizeText(productName(review));
   let rootCause = "Needs human review";
 
-  if (/how much|used too much|too much|quantity|apply|applied|instructions|correct way|routine order|before or after|sprayed too close|blend|diagram|placement|layer/.test(text)) {
+  if (/how much|used too much|too much|quantity|apply|applied|application|instructions|correct way|routine order|before or after|sprayed too close|blend|diagram|placement|layer|order/.test(text)) {
     rootCause = "Usage confusion / over-application or routine order";
-  } else if (/fine|2a|2b|straight hair|wavy or curly|not for my hair|not enough for dense curls|not for my routine|only for frizz|colored hair/.test(text)) {
+  } else if (/fine|2a|2b|straight hair|wavy or curly|not for my hair|not enough for dense curls|not for my routine|only for frizz|colored hair|weighed down|too heavy|flat/.test(text)) {
     rootCause = "Routine mismatch / product fit uncertainty";
   } else if (/humid|humidity|mumbai|chennai|goa|kolkata|sweat|monsoon/.test(text) && /frizz|hold|puffy|opened/.test(text)) {
     rootCause = "Climate expectation mismatch";
@@ -473,6 +498,25 @@ export function detectRootCause(review, issueResult = classifyIssue(review)) {
     rootCauseHypothesis: rootCause,
     issueOwner
   };
+}
+
+export function detectClimateInsight(review) {
+  const text = combinedText(review);
+
+  if (/mumbai|chennai|goa|kolkata|humid|humidity|sweat|monsoon/.test(text)) {
+    if (/hold|opened|gel|style|definition/.test(text)) {
+      return "Climate-fit signal: customer is judging hold or definition under humid/sweaty conditions.";
+    }
+    if (/frizz|puffy|flyaway/.test(text)) {
+      return "Climate-fit signal: customer is expecting stronger frizz control in humid weather.";
+    }
+    if (/sticky|greasy|oily|heavy/.test(text)) {
+      return "Climate-fit signal: product may feel heavier by evening in humidity, so amount and placement guidance matter.";
+    }
+    return "Climate-fit signal: review mentions Indian humid weather or monsoon context.";
+  }
+
+  return "No clear climate-fit signal.";
 }
 
 export function calculateSeverity(review, issueResult = classifyIssue(review), sentimentResult = classifySentiment(review), rootCauseResult = detectRootCause(review, issueResult)) {
@@ -511,6 +555,41 @@ export function calculateConfidence(review, issueResult = classifyIssue(review))
   return Math.max(35, Math.min(96, 25 + signalStrength + separation + lengthSignal + metadataSignal + productSignal));
 }
 
+export function explainConfidence(review, issueResult = classifyIssue(review), confidenceScore = calculateConfidence(review, issueResult)) {
+  const ranked = Object.entries(issueResult.issueScores || {});
+  const top = ranked[0];
+  const second = ranked[1];
+  const rating = numericRating(review);
+  const pieces = [];
+
+  if (top) pieces.push(`top keyword signal is ${top[0]} (${top[1]} points)`);
+  if (second && top && top[1] - second[1] >= 3) pieces.push(`clear separation from secondary issue (${second[0]})`);
+  if (rating) pieces.push(`rating metadata is present (${rating}/5)`);
+  if (productName(review) !== "Unassigned product") pieces.push("product context is available");
+
+  if (!pieces.length) return `${confidenceScore}% confidence: limited signals, so this should be reviewed manually.`;
+  return `${confidenceScore}% confidence because ${pieces.join(", ")}.`;
+}
+
+export function assignTeamOwner(review, issueResult = classifyIssue(review), rootCauseResult = detectRootCause(review, issueResult), severity = "Low") {
+  const source = sourceName(review);
+  const rating = numericRating(review);
+  const marketplace = MARKETPLACE_SOURCES.some((name) => source.includes(name));
+  const issue = issueResult.primaryIssue;
+  const rootCause = rootCauseResult.rootCauseHypothesis;
+
+  if (marketplace && rating <= 3 && ["High", "Critical", "Medium"].includes(severity)) {
+    return "Marketplace team";
+  }
+
+  if (rootCause.includes("Usage confusion")) return "Website team";
+  if (["Packaging issue", "Delivery issue"].includes(issue)) return issue === "Delivery issue" ? "Marketplace team" : "Support team";
+  if (["Scalp concern", "Scent concern", "Dryness"].includes(issue)) return "Product team";
+  if (["Positive repeat purchase", "Positive routine fit"].includes(issue)) return "Content team";
+
+  return teamOwnerByIssue[issue] || "Support team";
+}
+
 function funnelImpact(review, severity, sentiment, issue, rootCause) {
   const source = sourceName(review);
   const marketplace = MARKETPLACE_SOURCES.some((name) => source.includes(name));
@@ -536,22 +615,29 @@ function funnelImpact(review, severity, sentiment, issue, rootCause) {
 export function generateRecommendedAction(review, issueResult = classifyIssue(review), rootCauseResult = detectRootCause(review, issueResult)) {
   const issue = issueResult.primaryIssue;
   const product = productName(review);
+  const productKey = normalizeText(product);
   const rootCause = rootCauseResult.rootCauseHypothesis;
 
   if (["Positive repeat purchase", "Positive routine fit"].includes(issue)) {
     return `Use this ${product} review as a proof point for routine-fit messaging and collect permission for UGC.`;
   }
   if (rootCause.includes("Usage confusion") || issue === "Usage confusion") {
-    return `Prioritize usage education for ${product} before treating this as a formula rejection. Add quantity, placement, and routine-order guidance.`;
+    if (productKey.includes("wax")) {
+      return `Add a "how much is enough" visual on the Wax Stick product page, with separate guidance for fine, medium, and thick hair. Send a recovery reply explaining quantity, placement, and how to remove buildup if over-applied.`;
+    }
+    if (productKey.includes("dry shampoo")) {
+      return `Add a dry-shampoo usage strip showing spray distance, wait time, and brushing/blending steps for dark Indian hair. Support should reply with the same three-step method.`;
+    }
+    return `Prioritize usage education for ${product} before treating this as formula rejection. Add quantity, placement, wet/dry hair cues, and routine-order guidance.`;
   }
   if (issue === "Routine mismatch" || issue === "Product feels heavy" || issue === "Weighed-down curls") {
-    return `Tighten product-fit guidance for ${product}. Clarify who should choose a lighter routine and who needs richer styling support.`;
+    return `Tighten product-fit guidance for ${product}. Clarify "best for" and "skip if" rules by hair density, scalp type, and wave/curl pattern so fine-hair customers do not overbuy heavy steps.`;
   }
   if (issue === "Sticky or greasy feel") {
-    return `Audit product-page usage visuals for ${product}. Show smallest recommended amount and where not to apply for oily roots or fine hair.`;
+    return `Audit product-page usage visuals for ${product}. Show the smallest recommended amount, where not to apply for oily roots, and a recovery tip for removing buildup after over-application.`;
   }
   if (issue === "Frizz not controlled" || issue === "Weak hold") {
-    return `Add climate-specific expectations for ${product}, especially humid-city routines and layering suggestions.`;
+    return `Add climate-specific expectations for ${product}, especially Mumbai/monsoon routines, drying rules, refresh steps, and when to layer with gel or serum.`;
   }
   if (issue === "White cast or residue") {
     return `Add blending instructions and dark-hair demos for ${product}. Review nozzle dispersion if this repeats.`;
@@ -705,6 +791,7 @@ export function analyzeReview(review) {
   const rootCauseResult = detectRootCause(review, issueResult);
   const severity = calculateSeverity(review, issueResult, sentimentResult, rootCauseResult);
   const confidenceScore = calculateConfidence(review, issueResult);
+  const teamOwner = assignTeamOwner(review, issueResult, rootCauseResult, severity);
   const primaryIssue = issueResult.primaryIssue;
 
   return {
@@ -723,8 +810,11 @@ export function analyzeReview(review) {
     Secondary_Issue: issueResult.secondaryIssue,
     Root_Cause_Hypothesis: rootCauseResult.rootCauseHypothesis,
     Issue_Owner: rootCauseResult.issueOwner,
+    Team_Owner: teamOwner,
     Severity: severity,
     Confidence_Score: confidenceScore,
+    Confidence_Explanation: explainConfidence(review, issueResult, confidenceScore),
+    Climate_Insight: detectClimateInsight(review),
     Funnel_Impact: funnelImpact(review, severity, sentimentResult.sentiment, primaryIssue, rootCauseResult.rootCauseHypothesis),
     Recommended_Brand_Action: generateRecommendedAction(review, issueResult, rootCauseResult),
     Product_Page_Fix: generateProductPageFix(review, issueResult, rootCauseResult),

@@ -38,6 +38,55 @@ function densityAmount(productName, density) {
   return amount;
 }
 
+function buildExpertFitSummary({ hairType, density, scalp, concern, climate, sensitivity, isCurly, isWavy, isFine, oilyScalp, humid, wantsLight }) {
+  if (isWavy && isFine && oilyScalp && humid && wantsLight) {
+    return "Fine wavy hair with an oily scalp can look flat quickly in humid weather. Heavy creams or strong gels may weigh the pattern down, so this routine prioritizes a clean scalp, conditioner away from roots, and one very small anti-frizz serum layer on damp mid-lengths.";
+  }
+
+  if (isCurly && density === "thick" && scalp === "dry" && concern === "definition") {
+    return "Thick curly hair with dryness needs moisture before hold, but the order matters. Conditioner or leave-in should soften the lengths first, then a controlled defining or gel step can lock shape without creating buildup.";
+  }
+
+  if (isCurly && concern === "hold" && humid) {
+    return "Curly hair in humidity needs a little more structure than a cream-only routine. This recommendation keeps moisture in the base, then adds hold on wet hair so curls dry in place instead of opening up by evening.";
+  }
+
+  if (concern === "flyaways" || hairType === "straight") {
+    return "This profile needs targeted finish rather than all-over styling weight. A focused flyaway step works best when the rest of the routine stays light and product is kept away from roots.";
+  }
+
+  if (concern === "dryness" || scalp === "dry") {
+    return "Dry-feeling hair usually needs conditioning before any finishing product. This routine makes moisture the base step, then uses a lighter finisher only where frizz or dullness shows up.";
+  }
+
+  return `${title(hairType)} hair with ${title(density)} density and a ${title(scalp)} scalp needs a routine that matches ${title(
+    concern
+  )} without over-layering. The recommendation keeps the number of products tied to the selected preference, climate, and sensitivity so the result is easier to repeat.`;
+}
+
+function buildAvoidList({ isFine, wantsLight, oilyScalp, isCurly, humid, concern }) {
+  const list = [];
+
+  if (isFine || wantsLight) {
+    list.push("Avoid using curl cream, leave-in, serum, and gel together unless each amount is tiny.");
+    list.push("Avoid applying rich stylers near the scalp or crown, especially on fine or low-density hair.");
+  }
+
+  if (oilyScalp) {
+    list.push("Avoid treating greasy roots with more conditioner or cream. Keep conditioning on lengths and refresh roots separately.");
+  }
+
+  if (isCurly && humid) {
+    list.push("Avoid touching curls while drying. Friction plus humidity can break the cast and bring frizz back.");
+  }
+
+  if (concern === "definition") {
+    list.push("Avoid applying defining products on hair that is too dry; wet-hair application gives cleaner curl clumps.");
+  }
+
+  return list.length ? list : ["Avoid adding more product before checking whether hair is wet enough, evenly sectioned, and fully blended."];
+}
+
 export function generateRoutine(answers, config) {
   const hairType = answers.hairType || "wavy";
   const density = answers.density || "medium";
@@ -201,6 +250,22 @@ export function generateRoutine(answers, config) {
   const maxSteps = preference === "2-step" ? 2 : preference === "3-step" ? 3 : 5;
   const finalRoutine = uniqueRoutine.slice(0, maxSteps);
   const order = finalRoutine.map((step, index) => `${index + 1}. ${step.product} - ${step.role}`);
+  const usageAmountAndOrder = finalRoutine.map((step, index) => `${index + 1}. ${step.product}: ${step.amount} ${step.note}`);
+  const whyThisFitsDetailed = buildExpertFitSummary({
+    hairType,
+    density,
+    scalp,
+    concern,
+    climate,
+    sensitivity,
+    isCurly,
+    isWavy,
+    isFine,
+    oilyScalp,
+    humid,
+    wantsLight
+  });
+  const avoidForHairType = buildAvoidList({ isFine, wantsLight, oilyScalp, isCurly, humid, concern });
   const bundleName =
     preference === "2-step"
       ? "Light Reset Pair"
@@ -215,7 +280,10 @@ export function generateRoutine(answers, config) {
     recommendedRoutine: finalRoutine,
     productCategories: finalRoutine.map((step) => step.product),
     applicationOrder: order,
+    usageAmountAndOrder,
     commonMistake: avoid[0],
+    avoidForHairType,
+    whyThisFitsDetailed,
     whyThisFits: [
       ...new Set([
         ...reasons,
@@ -241,12 +309,22 @@ export function generateRoutine(answers, config) {
       finalRoutine.length > 2
         ? `On first use, try only steps 1-${Math.min(3, finalRoutine.length)} before adding optional finishers. This makes it easier to spot over-application.`
         : "Use the routine twice before adding a styling product so the customer can feel the baseline result.",
+    postPurchaseEducationTip:
+      finalRoutine.length > 2
+        ? `Send a day-one usage tip after purchase: start with the base steps first, then add ${finalRoutine[finalRoutine.length - 1]?.product || "the finisher"} only if the hair still needs it.`
+        : "Send a simple post-purchase reminder: use the product on the right area of hair and resist adding more before it dries.",
     productPageEducation:
       isFine || wantsLight
         ? "Add a product-page visual: fine hair should start with half the standard quantity."
         : humid
           ? "Add a humid-weather note: apply on damp hair and use smaller layers."
-          : "Add a routine-order panel with wet/dry application cues."
+          : "Add a routine-order panel with wet/dry application cues.",
+    productPageFixSuggestion:
+      isFine || wantsLight
+        ? "Add a product-page quantity visual by hair density, with a clear 'fine hair starts with half' callout."
+        : humid
+          ? "Add a product-page humidity note showing amount, placement, and refresh rules for Indian weather."
+          : "Add a product-page routine-order strip showing when to apply each step and what not to pair together."
   };
 }
 

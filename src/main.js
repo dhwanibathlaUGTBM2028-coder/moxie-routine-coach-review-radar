@@ -23,8 +23,11 @@ const classifiedHeaders = [
   "Primary_Issue",
   "Secondary_Issue",
   "Root_Cause_Hypothesis",
+  "Team_Owner",
   "Severity",
   "Confidence_Score",
+  "Confidence_Explanation",
+  "Climate_Insight",
   "Funnel_Impact",
   "Recommended_Brand_Action",
   "Product_Page_Fix",
@@ -64,6 +67,12 @@ function escapeHtml(value) {
 function truncate(value, length = 96) {
   const text = String(value ?? "");
   return text.length > length ? `${text.slice(0, length - 1).trim()}...` : text;
+}
+
+function confidenceNote(review) {
+  return String(review.Confidence_Explanation || "")
+    .replace(/^\d+% confidence because\s+/i, "Because ")
+    .replace(/^\d+% confidence:\s+/i, "");
 }
 
 function icon(name) {
@@ -180,6 +189,12 @@ function metricCard(label, value, note, tooltip = "") {
   `;
 }
 
+function compactList(items, className = "focus-list") {
+  const safeItems = (items || []).filter(Boolean);
+  if (!safeItems.length) return renderEmpty("No recommendation generated yet.");
+  return `<ul class="${className}">${safeItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+}
+
 function renderTopbar() {
   const tabs = [
     ["home", "Why", "sparkles"],
@@ -224,14 +239,35 @@ function renderTopbar() {
 
 function renderHome() {
   const analytics = buildAnalytics(state.classifiedReviews);
+  const whyCards = [
+    {
+      title: "Prevent wrong-fit purchases",
+      body:
+        "Customers can understand whether a routine suits their hair type, density, scalp, climate, and finish preference before adding products to cart."
+    },
+    {
+      title: "Reduce avoidable bad reviews",
+      body:
+        "Sticky, greasy, heavy, dry, or weak-hold complaints often point to amount, placement, or routine order. Catching that pattern helps the brand respond before confusion becomes reputation drag."
+    },
+    {
+      title: "Turn review patterns into weekly brand actions",
+      body:
+        "Repeated complaints become concrete fixes: product-page education, FAQ updates, support replies, reels, and product-team review notes."
+    }
+  ];
+
   return `
     <main class="page">
       <section class="hero">
         <div>
-          <p class="eyebrow">Made for Indian hair, weather, and habits</p>
-          <h1>Routine fit intelligence.</h1>
+          <p class="eyebrow">Proof-of-work for Indian haircare growth</p>
+          <h1>Routine Fit Intelligence for Moxie Beauty</h1>
           <p class="lead">
-            Guide the buyer. Read the reviews. Turn confusion into fixes.
+            A local-first tool that helps identify routine mismatch, usage confusion, and avoidable bad-review patterns across haircare reviews, comments, and support messages.
+          </p>
+          <p class="hero-subline">
+            Help customers choose the right routine before buying. Detect usage confusion after reviews. Turn repeated haircare complaints into page fixes, support replies, and content actions.
           </p>
           <div class="hero-actions no-print">
             <button class="button primary" data-view="coach">${icon("wand")} Coach</button>
@@ -241,12 +277,12 @@ function renderHome() {
         </div>
         <div class="problem-strip">
           <div class="plain-panel">
-            <p class="mini-label">What this is</p>
-            <span class="big-answer">A local demo for Moxie teams</span>
+            <p class="mini-label">Core positioning</p>
+            <span class="big-answer">Routine mismatch is the monetizable problem.</span>
           </div>
           <div class="focus-panel">
             <p class="mini-label">Why it matters</p>
-            <h3 style="margin-top:10px;">Bad reviews often start with wrong fit or wrong amount.</h3>
+            <h3 style="margin-top:10px;">A bad review can start with the wrong product, wrong amount, or wrong order.</h3>
           </div>
         </div>
         <div class="hero-visual" aria-label="Moxie routine intelligence flow">
@@ -278,23 +314,64 @@ function renderHome() {
       <section class="section">
         <div class="section-header">
           <div>
+            <p class="eyebrow">Why this matters</p>
+            <h2>Fix the journey before the review becomes permanent</h2>
+          </div>
+        </div>
+        <div class="why-grid">
+          ${whyCards
+            .map(
+              (card) => `
+                <article class="card insight-card">
+                  <h3>${escapeHtml(card.title)}</h3>
+                  <p>${escapeHtml(card.body)}</p>
+                </article>
+              `
+            )
+            .join("")}
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <div>
             <p class="eyebrow">Demo path</p>
-            <h2>Three screens</h2>
+            <h2>Three focused screens</h2>
           </div>
         </div>
         <div class="flow-grid">
           <article class="flow-card" data-step="1">
-            <h3>Prevent mismatch</h3>
-            <p class="small">Recommend routine + amount.</p>
+            <h3>Before purchase: recommend the right routine and usage amount</h3>
+            <p class="small">The coach translates hair type, scalp, climate, habit, and sensitivity into a lean routine with specific quantity guidance.</p>
           </article>
           <article class="flow-card" data-step="2">
-            <h3>Spot confusion</h3>
-            <p class="small">Classify repeated review issues.</p>
+            <h3>After purchase: detect repeated review complaints and root causes</h3>
+            <p class="small">The radar classifies reviews by issue, likely cause, severity, confidence, marketplace risk, and team owner.</p>
           </article>
           <article class="flow-card" data-step="3">
-            <h3>Fix the journey</h3>
-            <p class="small">Update pages, support, content.</p>
+            <h3>Weekly action: update product pages, FAQs, support replies, and content</h3>
+            <p class="small">The report converts repeated confusion into product-page fixes, education ideas, reply templates, and content prompts.</p>
           </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="proof-summary">
+          <div>
+            <p class="eyebrow">Proof-of-Work Summary</p>
+            <h2>Built to help a brand team see repeated confusion faster</h2>
+            <p>
+              I built this as a no-API, local-first prototype for Moxie Beauty. It helps identify routine mismatch and usage confusion from reviews/comments, then turns those patterns into product-page fixes, usage education, support replies, and content actions. The goal is not to replace human judgment, but to help brand, growth, support, and product teams see repeated customer confusion faster.
+            </p>
+          </div>
+          <div class="summary-grid">
+            <div><span>Problem observed</span><strong>Wrong fit or wrong usage can look like product failure.</strong></div>
+            <div><span>What I built</span><strong>A customer coach plus a brand review intelligence dashboard.</strong></div>
+            <div><span>How it works</span><strong>Local rules classify issues, causes, severity, confidence, and owners.</strong></div>
+            <div><span>Why Moxie should care</span><strong>It turns scattered review language into action for pages, support, and content.</strong></div>
+            <div><span>Weekly use</span><strong>Upload reviews every Monday, triage patterns, and assign team fixes.</strong></div>
+            <div><span>Could become</span><strong>A lightweight routine intelligence workflow inside growth and support.</strong></div>
+          </div>
         </div>
       </section>
 
@@ -314,10 +391,14 @@ function renderHome() {
 
 function renderWeeklyWorkflow() {
   const steps = [
-    "Upload reviews",
-    "Find repeated confusion",
-    "Update page + FAQ",
-    "Create support + content fixes"
+    "Every Monday, upload reviews/comments from Amazon, Nykaa, website, Instagram, and support.",
+    "Review Radar classifies all incoming feedback by issue, root cause, severity, confidence, and team owner.",
+    "Marketing checks the top repeated confusion patterns and chooses the week's education focus.",
+    "Website team updates FAQs, product pages, fit notes, and quantity visuals.",
+    "Content team creates usage education reels, carousels, and post-purchase tips.",
+    "Support team uses suggested reply templates for recovery and troubleshooting.",
+    "Product team reviews repeated formula, scalp, scent, or fit concerns.",
+    "Growth team tracks whether ratings and objections improve over time."
   ];
 
   return `
@@ -325,7 +406,7 @@ function renderWeeklyWorkflow() {
       <div class="section-header">
         <div>
           <p class="eyebrow">How Moxie could use this weekly</p>
-          <h2>Monday loop</h2>
+          <h2>Monday operating loop</h2>
         </div>
       </div>
       <div class="panel">
@@ -397,7 +478,8 @@ function renderCoach() {
           </div>
           <div class="panel">
             <div class="metric-label"><span>Recommended profile</span>${pill(routine.profileSummary)}</div>
-            <h3 style="margin-top:12px;">${escapeHtml(routine.suggestedBundle.name)}</h3>
+            <h3 style="margin-top:12px;">Recommended routine</h3>
+            <p class="small" style="margin-top:8px;">${escapeHtml(routine.suggestedBundle.name)} - ${escapeHtml(routine.suggestedBundle.note)}</p>
             <div class="routine-list">
               ${routine.recommendedRoutine
                 .map(
@@ -419,26 +501,48 @@ function renderCoach() {
       </section>
 
       <section class="section">
-        <div class="grid three">
-          <article class="card">
-            <h3>Common mistake to avoid</h3>
-            <p class="small">${escapeHtml(truncate(routine.commonMistake, 92))}</p>
+        <div class="grid two">
+          <article class="card insight-card">
+            <h3>Why this routine fits this profile</h3>
+            <p>${escapeHtml(routine.whyThisFitsDetailed)}</p>
+            ${compactList(routine.whyThisFits)}
           </article>
-          <article class="card">
-            <h3>Education card</h3>
-            <p class="small">${escapeHtml(routine.educationCard.title)}</p>
-          </article>
-          <article class="card">
-            <h3>After purchase</h3>
-            <p class="small">${escapeHtml(truncate(routine.postPurchaseTip, 92))}</p>
+          <article class="card insight-card">
+            <h3>Usage amount and order</h3>
+            ${compactList(routine.usageAmountAndOrder)}
           </article>
         </div>
       </section>
 
       <section class="section">
-        <div class="why-note">
-          ${icon("file")}
-          <span><strong>Page fix:</strong> ${escapeHtml(truncate(routine.productPageEducation, 120))}</span>
+        <div class="grid three">
+          <article class="card insight-card">
+            <h3>Common mistake to avoid</h3>
+            <p>${escapeHtml(routine.commonMistake)}</p>
+          </article>
+          <article class="card insight-card">
+            <h3>What to avoid for this hair type</h3>
+            ${compactList(routine.avoidForHairType)}
+          </article>
+          <article class="card insight-card">
+            <h3>Post-purchase education tip</h3>
+            <p>${escapeHtml(routine.postPurchaseEducationTip || routine.postPurchaseTip)}</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="grid two">
+          <article class="card insight-card">
+            <h3>Moxie education card</h3>
+            <p><strong>${escapeHtml(routine.educationCard.title)}</strong></p>
+            <p>${escapeHtml(routine.educationCard.body)}</p>
+            ${compactList(routine.educationCard.bullets)}
+          </article>
+          <article class="card insight-card">
+            <h3>Product-page fix suggestion</h3>
+            <p>${escapeHtml(routine.productPageFixSuggestion || routine.productPageEducation)}</p>
+          </article>
         </div>
       </section>
     </main>
@@ -563,12 +667,31 @@ function renderDashboard() {
         <div class="page-intro">
           <div class="plain-panel">
             <p class="eyebrow">Metrics for the weekly review</p>
-            <h2>What should Moxie fix first?</h2>
+            <h2>Decision-ready review intelligence</h2>
+            <p class="lead" style="margin-top:12px;">Use this page to decide which customer confusion pattern gets fixed first, and which team should own it.</p>
           </div>
           <div class="focus-panel">
-            <p class="mini-label">Weekly focus</p>
-            <h3 style="margin-top:10px;">${escapeHtml(analytics.commonRootCause)}</h3>
+            <p class="mini-label">Marketplace risk</p>
+            <h3 style="margin-top:10px;">${analytics.marketplaceRiskScore}/100</h3>
+            <p class="small" style="margin-top:10px;">${escapeHtml(analytics.marketplaceRiskExplanation)}</p>
           </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="grid three decision-grid">
+          <article class="card decision-card">
+            <p class="mini-label">What Moxie should do this week</p>
+            <h3>${escapeHtml(analytics.weeklyRecommendation)}</h3>
+          </article>
+          <article class="card decision-card">
+            <p class="mini-label">Biggest avoidable review risk</p>
+            <h3>${escapeHtml(analytics.biggestAvoidableReviewRisk)}</h3>
+          </article>
+          <article class="card decision-card">
+            <p class="mini-label">Most repeated root cause</p>
+            <h3>${escapeHtml(analytics.commonRootCause)}</h3>
+          </article>
         </div>
       </section>
 
@@ -576,10 +699,11 @@ function renderDashboard() {
         <div class="plain-panel">
           <p class="mini-label">Optional filters</p>
           ${renderFilters()}
-          <div class="grid three">
+          <div class="grid four">
             ${metricCard("Reviews", analytics.totalReviews, "")}
             ${metricCard("Negative share", formatPercent(analytics.negativeReviewShare), "")}
-            ${metricCard("Marketplace risk", `${analytics.marketplaceRiskScore}/100`, "")}
+            ${metricCard("Average rating", analytics.averageRating.toFixed(2), "")}
+            ${metricCard("Repeat signals", analytics.repeatSignals.length, "Positive routine fit or repurchase signals.")}
           </div>
         </div>
       </section>
@@ -591,14 +715,11 @@ function renderDashboard() {
             ${renderBarChart(analytics.topComplaints.slice(0, 6), "No issues in this filter.")}
           </div>
           <div class="card">
-            <h3>Use it for</h3>
-            <ul class="focus-list" style="margin-top:16px;">
-              <li>Page fixes</li>
-              <li>Support replies</li>
-              <li>Usage content</li>
-            </ul>
-            <div style="margin-top:18px;">
-              ${renderStackedBar(analytics.sentimentCounts)}
+            <h3>Team owner breakdown</h3>
+            ${renderBarChart(analytics.teamOwnerTable, "No team owners in this filter.")}
+            <div class="why-note" style="margin-top:16px;">
+              ${icon("info")}
+              <span>Owners are assigned by issue type, source risk, and likely action: page fix, reel/tutorial, reply template, product review, or marketplace intervention.</span>
             </div>
           </div>
         </div>
@@ -617,9 +738,13 @@ function renderDashboard() {
             }
           </div>
           <div class="panel">
-            <h3>Signal summary</h3>
-            ${metricCard("Average rating", analytics.averageRating.toFixed(2), "")}
-            ${metricCard("Repeat signals", analytics.repeatSignals.length, "")}
+            <h3>Sentiment and severity</h3>
+            <div style="margin-top:16px;">
+              ${renderStackedBar(analytics.sentimentCounts)}
+            </div>
+            <div style="margin-top:18px;">
+              ${renderBarChart(topEntries(analytics.severityCounts, 4), "No severity data.")}
+            </div>
           </div>
         </div>
       </section>
@@ -632,6 +757,7 @@ function renderDashboard() {
           </div>
           <div class="panel">
             <h3>Source-wise issue table</h3>
+            <p class="small" style="margin-top:8px;">${escapeHtml(analytics.sourceWiseInsight)}</p>
             ${renderSourceTable(analytics.sourceIssueTable)}
           </div>
         </div>
@@ -652,6 +778,7 @@ function renderReport() {
   const reviews = filtered.length ? filtered : state.classifiedReviews;
   const report = buildWeeklyReport(reviews, brandConfig);
   const analytics = buildAnalytics(reviews);
+  const defaultOpenSections = new Set(["Executive Summary", "Priority Actions This Week", "Product Page Fixes", "Usage Education Ideas"]);
 
   return `
     <main class="page">
@@ -676,7 +803,8 @@ function renderReport() {
       <section class="report-shell">
         <div class="report-cover">
           <p class="eyebrow">${escapeHtml(report.generatedOn)}</p>
-          <h1 style="font-size:clamp(2.4rem, 5vw, 4.8rem);">${escapeHtml(report.title)}</h1>
+          <h1 class="report-title">${escapeHtml(report.title)}</h1>
+          <p class="report-lede">A weekly, presentation-ready readout of routine mismatch, usage confusion, marketplace risk, and next actions for brand, growth, support, website, and product teams.</p>
           <div class="grid four" style="margin-top:18px;">
             ${metricCard("Reviews", analytics.totalReviews, "")}
             ${metricCard("Negative share", formatPercent(analytics.negativeReviewShare), "")}
@@ -687,7 +815,7 @@ function renderReport() {
         ${report.sections
           .map(
             (section) => `
-              <details class="report-section">
+              <details class="report-section" ${defaultOpenSections.has(section.heading) ? "open" : ""}>
                 <summary>${escapeHtml(section.heading)}</summary>
                 <pre>${escapeHtml(section.body)}</pre>
               </details>
@@ -866,13 +994,17 @@ function renderReviewTable(reviews, compact = false) {
   if (compact) {
     return `
       <div class="table-wrap">
-        <table class="compact-table">
+        <table class="compact-table radar-table">
           <thead>
             <tr>
               <th>Product</th>
+              <th>Source</th>
               <th>Review</th>
-              <th>Issue</th>
-              <th>Action</th>
+              <th>Primary issue</th>
+              <th>Root cause</th>
+              <th>Severity</th>
+              <th>Confidence</th>
+              <th>Recommended action</th>
             </tr>
           </thead>
           <tbody>
@@ -880,10 +1012,14 @@ function renderReviewTable(reviews, compact = false) {
               .map(
                 (review) => `
                   <tr>
-                    <td>${escapeHtml(review.Product)}<br><span class="small">${escapeHtml(review.Source)}</span></td>
-                    <td class="review-text">${escapeHtml(truncate(review.Review_Text, 110))}</td>
-                    <td>${escapeHtml(review.Primary_Issue)}<br>${pill(review.Severity, review.Severity)}</td>
-                    <td class="action-cell">${escapeHtml(truncate(review.Product_Page_Fix || review.Recommended_Brand_Action, 120))}</td>
+                    <td><strong>${escapeHtml(review.Product)}</strong><br><span class="small">${escapeHtml(review.Team_Owner || "Support team")}</span></td>
+                    <td>${escapeHtml(review.Source)}</td>
+                    <td class="review-text">${escapeHtml(truncate(review.Review_Text, 120))}</td>
+                    <td>${escapeHtml(review.Primary_Issue)}</td>
+                    <td>${escapeHtml(truncate(review.Root_Cause_Hypothesis, 92))}</td>
+                    <td>${pill(review.Severity, review.Severity)}</td>
+                    <td><strong>${review.Confidence_Score}%</strong><br><span class="small">${escapeHtml(truncate(confidenceNote(review), 92))}</span></td>
+                    <td class="action-cell">${escapeHtml(truncate(review.Recommended_Brand_Action, 170))}</td>
                   </tr>
                 `
               )
@@ -909,6 +1045,7 @@ function renderReviewTable(reviews, compact = false) {
             <th>Root cause</th>
             <th>Severity</th>
             <th>Confidence</th>
+            <th>Team owner</th>
             <th>Funnel impact</th>
             <th>Recommended action</th>
           </tr>
@@ -927,7 +1064,8 @@ function renderReviewTable(reviews, compact = false) {
                   <td>${escapeHtml(review.Primary_Issue)}${compact ? "" : `<br><span class="small">${escapeHtml(review.Secondary_Issue)}</span>`}</td>
                   <td>${escapeHtml(review.Root_Cause_Hypothesis)}</td>
                   <td>${pill(review.Severity, review.Severity)}</td>
-                  <td>${review.Confidence_Score}%</td>
+                  <td>${review.Confidence_Score}%<br><span class="small">${escapeHtml(confidenceNote(review))}</span></td>
+                  <td>${escapeHtml(review.Team_Owner || "Support team")}</td>
                   <td>${escapeHtml(review.Funnel_Impact)}</td>
                   <td class="action-cell">${escapeHtml(review.Recommended_Brand_Action)}</td>
                 </tr>

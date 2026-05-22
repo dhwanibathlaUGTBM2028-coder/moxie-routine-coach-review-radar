@@ -1,15 +1,11 @@
 # 60-Second Demo Script
 
-I noticed that for haircare brands, a lot of dissatisfaction does not come from the product simply being bad. It comes from routine mismatch or usage confusion.
+I built Moxie Routine Coach + Review Radar as a proof-of-work around one monetizable haircare problem: routine mismatch. In beauty, a bad review does not always mean the product is bad. Sometimes the customer chose the wrong routine, used too much product, or applied it in the wrong order. This tool helps customers find the right routine before buying, and helps the brand detect repeated usage confusion after purchase. It turns reviews and comments into product-page fixes, support replies, usage education, and weekly content actions. It is local-first, no API, and built to be easy for a brand team to pilot.
 
-Customers may buy the wrong product for their hair type, use the right product incorrectly, or apply too much. Then the product can feel sticky, greasy, heavy, dry, or ineffective, which creates avoidable bad reviews and more support queries.
+## Walkthrough Beats
 
-So I built a local, no-API tool for Moxie called Routine Coach + Review Radar.
-
-First, the Routine Coach helps a customer pick a better-fit routine before buying. It asks about hair type, density, scalp, climate, styling habit, and product sensitivity, then recommends product categories, usage amount, application order, a mistake to avoid, and a post-purchase tip.
-
-Second, the Review Radar lets the brand upload reviews from marketplaces, the website, Instagram, WhatsApp, or support. It classifies each review into issue, root cause, severity, confidence, funnel impact, and recommended action.
-
-The important part is that the output is operational. It tells the website team what product-page education to add, gives support a reply template, and gives marketing content ideas like "how much serum is enough for fine hair" or "one-swipe wax stick demo."
-
-The weekly report turns all of this into a routine Moxie could use every Monday to reduce avoidable confusion and improve the customer journey.
+1. Start on Why and show the routine mismatch problem.
+2. Open Coach and show the default wavy, fine, oily-scalp, humid-weather routine.
+3. Open Radar and show the sticky wax-stick review classification.
+4. Open Metrics and show weekly action, owner breakdown, and marketplace risk.
+5. Open Weekly Report and show the open executive summary and action sections.

@@ -36,6 +36,64 @@ export function groupBy(items, key) {
   }, {});
 }
 
+function normalized(value) {
+  return String(value || "").toLowerCase();
+}
+
+function isMarketplaceSource(source) {
+  return /amazon|nykaa|flipkart|myntra/.test(normalized(source));
+}
+
+function buildSourceWiseInsight(reviews) {
+  const marketplaceReviews = reviews.filter((review) => isMarketplaceSource(review.Source));
+  const conversationReviews = reviews.filter((review) => /instagram|support|whatsapp|reddit|quora/.test(normalized(review.Source)));
+
+  const topMarketplaceIssue = topEntries(
+    countBy(
+      marketplaceReviews.filter((review) => !["Positive repeat purchase", "Positive routine fit"].includes(review.Primary_Issue)),
+      "Primary_Issue"
+    ),
+    1
+  )[0]?.label;
+  const topConversationIssue = topEntries(
+    countBy(
+      conversationReviews.filter((review) => !["Positive repeat purchase", "Positive routine fit"].includes(review.Primary_Issue)),
+      "Primary_Issue"
+    ),
+    1
+  )[0]?.label;
+
+  if (topMarketplaceIssue && topConversationIssue) {
+    return `Marketplace reviews show more ${topMarketplaceIssue.toLowerCase()} signals, while Instagram/support-style comments show more ${topConversationIssue.toLowerCase()} questions. That split suggests product pages need clearer claims and support/content need sharper usage education.`;
+  }
+
+  if (topMarketplaceIssue) {
+    return `Marketplace reviews are currently led by ${topMarketplaceIssue.toLowerCase()} signals, so low-rating product-page objections should be reviewed first.`;
+  }
+
+  if (topConversationIssue) {
+    return `Social and support comments are currently led by ${topConversationIssue.toLowerCase()} questions, which makes them good input for FAQs, reels, and reply templates.`;
+  }
+
+  return "No strong source-wise split yet. Keep collecting marketplace, website, social, and support comments together for weekly review.";
+}
+
+function buildWeeklyRecommendation(topIssue, commonRootCause) {
+  if (topIssue === "Sticky or greasy feel") {
+    return "Add product-specific quantity visuals this week, especially for styling products where over-application can read as greasiness or buildup.";
+  }
+  if (topIssue === "Usage confusion") {
+    return "Create one routine-order education module and reuse it across product pages, FAQs, WhatsApp replies, and Instagram content.";
+  }
+  if (topIssue === "Routine mismatch" || commonRootCause.includes("Routine mismatch")) {
+    return "Tighten product-fit guidance by hair type, density, scalp type, and climate before pushing customers into bundles.";
+  }
+  if (topIssue === "Weak hold" || topIssue === "Frizz not controlled") {
+    return "Add humid-weather expectation setting and refresh guidance before changing formula claims.";
+  }
+  return `Review the repeated ${topIssue.toLowerCase()} pattern and assign the first fix to the most affected team owner.`;
+}
+
 export function buildAnalytics(reviews) {
   const totalReviews = reviews.length;
   const negativeReviews = reviews.filter((review) => review.Sentiment === "Negative").length;
@@ -59,6 +117,7 @@ export function buildAnalytics(reviews) {
   const sentimentCounts = countBy(reviews, "Sentiment");
   const sourceCounts = countBy(reviews, "Source");
   const funnelCounts = countBy(reviews, "Funnel_Impact");
+  const teamOwnerCounts = countBy(reviews, "Team_Owner");
 
   const productIssueMatrix = Object.entries(groupBy(reviews, "Product")).map(([product, productReviews]) => {
     const productComplaintBase =
@@ -115,6 +174,11 @@ export function buildAnalytics(reviews) {
   const marketplaceRiskScore = totalReviews
     ? Math.min(100, Math.round((marketplaceRiskReviews.length / totalReviews) * 100 + highSeverity.length * 1.8 + negativeReviews * 0.9))
     : 0;
+  const marketplaceRiskExplanation =
+    "This score combines low ratings, review severity, source risk, and repeated complaint categories. Higher score means more urgent product-page/support intervention is needed.";
+  const weeklyRecommendation = buildWeeklyRecommendation(topIssue, commonRootCause);
+  const biggestAvoidableReviewRisk = topIssue === "Other" ? "No single avoidable risk dominates yet." : `${topIssue} is the biggest avoidable review risk in this view.`;
+  const sourceWiseInsight = buildSourceWiseInsight(reviews);
 
   return {
     totalReviews,
@@ -128,6 +192,7 @@ export function buildAnalytics(reviews) {
     sentimentCounts,
     sourceCounts,
     funnelCounts,
+    teamOwnerCounts,
     highSeverity,
     marketplaceRiskReviews,
     repeatSignals,
@@ -138,9 +203,14 @@ export function buildAnalytics(reviews) {
     educationOpportunities,
     topComplaints: topEntries(categoryCounts, 7),
     topAffectedProducts: topEntries(productCounts, 6),
+    teamOwnerTable: topEntries(teamOwnerCounts, 8),
     commonRootCause,
     topIssue,
-    marketplaceRiskScore
+    marketplaceRiskScore,
+    marketplaceRiskExplanation,
+    weeklyRecommendation,
+    biggestAvoidableReviewRisk,
+    sourceWiseInsight
   };
 }
 
@@ -174,6 +244,17 @@ export function buildWeeklyReport(reviews, config) {
         "Choose one repeated routine-confusion pattern for this week's content.",
         "Update one product-page education block."
       ];
+  const teamOwners = analytics.teamOwnerTable.map((entry) => `${entry.label}: ${entry.value} items`);
+  const weeklyLoop = [
+    "Every Monday, upload reviews and comments from Amazon, Nykaa, website, Instagram, WhatsApp, and support.",
+    "Review Radar classifies incoming feedback by issue, root cause, severity, confidence, and team owner.",
+    "Marketing checks repeated confusion patterns and chooses the week's education angle.",
+    "Website team updates product-page FAQs, fit guidance, and quantity visuals.",
+    "Content team turns repeated questions into reels, carousels, and post-purchase tips.",
+    "Support team uses the suggested reply templates for recovery and troubleshooting.",
+    "Product team reviews repeated formula, scent, scalp, or packaging concerns.",
+    "Growth tracks whether ratings and objections improve over time."
+  ];
 
   return {
     title: `${config.logoText} Weekly Routine Intelligence Report`,
@@ -181,15 +262,19 @@ export function buildWeeklyReport(reviews, config) {
     sections: [
       {
         heading: "Executive Summary",
-        body: `Analyzed ${analytics.totalReviews} reviews and customer messages. Average rating is ${analytics.averageRating.toFixed(
+        body: `${analytics.totalReviews} reviews were analyzed across marketplace, website, support, and social sources. Average rating is ${analytics.averageRating.toFixed(
           2
-        )}, with ${formatPercent(analytics.negativeReviewShare)} negative share. The leading issue is ${analytics.topIssue}. Most repeated root-cause signal: ${analytics.commonRootCause}. Marketplace risk score is ${analytics.marketplaceRiskScore}/100.`
+        )}, with ${formatPercent(analytics.negativeReviewShare)} negative share. The largest avoidable risk is ${analytics.topIssue.toLowerCase()}, and the most repeated root cause is ${analytics.commonRootCause.toLowerCase()}. Marketplace risk is ${analytics.marketplaceRiskScore}/100. The pattern suggests that many complaints are not pure product rejection; they are tied to amount, placement, routine order, fit, or climate expectations.`
+      },
+      {
+        heading: "Priority Actions This Week",
+        body: sentenceList(priorityActions.slice(0, 7), "No priority action generated yet.")
       },
       {
         heading: "What Customers Are Struggling With",
         body: `${sentenceList(topComplaints, "No clear complaint concentration yet.")}\n\n${formatPercent(
           usageShare
-        )} of negative styling-product reviews are not pure product rejection. They point to usage confusion, product fit, or expectation mismatch, especially around quantity, placement, layering, and humid-weather performance.`
+        )} of negative styling-product reviews are not pure product rejection. They point to usage confusion, product fit, or expectation mismatch, especially around quantity, placement, layering, and humid-weather performance.\n\n${analytics.sourceWiseInsight}`
       },
       {
         heading: "Top Routine Mismatch Patterns",
@@ -205,7 +290,7 @@ export function buildWeeklyReport(reviews, config) {
         )
       },
       {
-        heading: "Top Product-Specific Issues",
+        heading: "Product-Specific Issues",
         body: sentenceList(
           analytics.productIssueMatrix
             .sort((a, b) => b.high - a.high || b.negative - a.negative)
@@ -226,7 +311,7 @@ export function buildWeeklyReport(reviews, config) {
       },
       {
         heading: "Product Page Fixes",
-        body: sentenceList(productFixes, "No page fixes generated yet.")
+        body: sentenceList(productFixes, "No page fixes generated yet.") + `\n\nOwner lens:\n${sentenceList(teamOwners, "No team owner split generated yet.")}`
       },
       {
         heading: "Usage Education Ideas",
@@ -241,17 +326,8 @@ export function buildWeeklyReport(reviews, config) {
         body: sentenceList(contentIdeas, "No content ideas generated yet.")
       },
       {
-        heading: "Marketplace Conversion Risks",
-        body: sentenceList(
-          analytics.marketplaceRiskReviews
-            .slice(0, 7)
-            .map((review) => `${review.Source} / ${review.Product}: ${review.Primary_Issue}. ${review.Product_Page_Fix}`),
-          "Marketplace risk is low in this filtered view."
-        )
-      },
-      {
-        heading: "Priority Actions for This Week",
-        body: sentenceList(priorityActions.slice(0, 7), "No priority action generated yet.")
+        heading: "How Moxie Could Use This Weekly",
+        body: sentenceList(weeklyLoop, "No weekly workflow generated yet.")
       }
     ]
   };
