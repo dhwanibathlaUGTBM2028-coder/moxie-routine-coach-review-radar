@@ -1,0 +1,17 @@
+{
+  "name": "moxie-routine-coach-review-radar",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-first proof-of-work demo for Moxie Beauty: routine recommendations and rule-based review intelligence.",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "start": "node scripts/serve.mjs",
+    "serve": "node scripts/serve.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18"
+  }
+}
